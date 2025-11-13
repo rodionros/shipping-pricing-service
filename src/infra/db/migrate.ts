@@ -65,6 +65,19 @@ async function applyFallbackSchema() {
     `);
 }
 
+async function seedShippingProviders() {
+    console.log("Seeding default shipping providers...");
+
+    // Два твоих mock-провайдера: код должен совпадать с тем, что в коде
+    await db.execute(`
+        INSERT INTO shipping_providers (code, name, is_active)
+        VALUES
+            ('mock_cdek', 'Mock CDEK Provider', TRUE),
+            ('mock_boxberry', 'Mock Boxberry Provider', TRUE)
+        ON CONFLICT (code) DO NOTHING;
+    `);
+}
+
 async function main() {
     try {
         if (fs.existsSync(JOURNAL_PATH)) {
@@ -76,6 +89,8 @@ async function main() {
             );
             await applyFallbackSchema();
         }
+
+        await seedShippingProviders();
     } catch (err) {
         console.error("Migration failed, applying fallback schema...", err);
         try {
