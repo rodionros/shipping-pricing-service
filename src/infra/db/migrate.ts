@@ -27,7 +27,6 @@ async function applyFallbackSchema() {
         );
     `);
 
-    // 3) варианты доставки (из schema.ts: shippingQuotes)
     await db.execute(`
         CREATE TABLE IF NOT EXISTS shipping_quotes (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -42,7 +41,6 @@ async function applyFallbackSchema() {
         );
     `);
 
-    // 4) справочник провайдеров (как у тебя был)
     await db.execute(`
         CREATE TABLE IF NOT EXISTS shipping_providers (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -53,7 +51,6 @@ async function applyFallbackSchema() {
         );
     `);
 
-    // 5) логи запросов к провайдерам (как у тебя был)
     await db.execute(`
         CREATE TABLE IF NOT EXISTS shipping_quote_logs (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
