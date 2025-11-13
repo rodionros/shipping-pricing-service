@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: shipping_pg
+    environment:
+      POSTGRES_DB: shipping_db
+      POSTGRES_USER: rodion
+      POSTGRES_PASSWORD: Admin123
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: shipping_redis
+    ports:
+      - "6379:6379"
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: shipping_api
+    env_file: .env
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./logs:/app/logs
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: shipping_worker
+    env_file: .env
+    depends_on:
+      - redis
+      - postgres
+    command: ["bun", "run", "worker"]
+    volumes:
+      - ./logs:/app/logs
+
+volumes:
+  pgdata:

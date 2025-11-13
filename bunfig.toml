@@ -1,0 +1,10 @@
+[test]
+
+extensions = ["ts", "js"]
+root = "tests"
+
+[install]
+peer = "ignore"
+
+[log]
+level = "info"
