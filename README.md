@@ -1,42 +1,96 @@
-# Shipping Pricing Service (Bun + Elysia + DDD + Clean Architecture)
+# Shipping Pricing Service
 
-Независимый микросервис для расчёта стоимости доставки с использованием Bun.js, Elysia.js, Drizzle ORM, PostgreSQL и Redis.
+Сервис для расчёта стоимости и сроков доставки на основе данных корзины и адреса.
 
-## Архитектура
+**Стек:** Bun, Elysia, TypeScript, PostgreSQL, Redis, Drizzle ORM, Docker.
 
-Сервис построен по принципам DDD и Чистой Архитектуры:
+---
 
-- **Domain Layer**
-    - Доменные сущности: `ShipmentRequest`, `DeliveryOption`, `Address`.
-    - Интерфейсы провайдеров: `ShippingProvider`.
-    - Интерфейсы репозиториев: `ShippingRequestRepository`, `ShippingQuoteRepository`.
-    - Доменные ошибки.
+## 🚀 Локальный запуск
 
-- **Application Layer**
-    - Use-case / сервис приложения: `ShippingService`.
-    - DTO и мапперы запрос/ответ.
-    - Валидация входных данных (Zod-схемы).
-    - Координация: вызов доменных провайдеров, кэширование, сохранение в БД.
-    - **Важно:** бизнес-правила инкапсулированы в домене, Application только оркестрирует.
+### 1. Установка зависимостей
 
-- **Infrastructure Layer**
-    - HTTP API на Elysia: роут `POST /shipping/quotes`.
-    - Реализация провайдеров: `MockCdekProvider`, `MockBoxberryProvider`.
-    - Drizzle ORM + PostgreSQL для хранения запросов и котировок.
-    - Redis:
-        - Кэширование ответов по ключу `(cart + address)` на короткое время.
-        - Очередь событий (worker читает из Redis-очереди и логирует их).
-    - Централизованный error handler.
-    - Логирование.
+```bash
+bun install
+```
 
-### Добавление нового провайдера (расширяемость)
+### 2. Создай `.env`
 
-Чтобы добавить нового провайдера (например, `YandexDeliveryProvider`):
+```env
+PORT=3000
+NODE_ENV=development
 
-1. В домене уже определён интерфейс:
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/shipping_db
+REDIS_HOST=localhost
+REDIS_PORT=6379
+```
 
-   ```ts
-   export interface ShippingProvider {
-     readonly code: string;
-     getQuotes(request: ShipmentRequest): Promise<DeliveryOption[]>;
-   }
+### 3. PostgreSQL и Redis
+
+```bash
+docker run --rm -p 5432:5432   -e POSTGRES_DB=shipping_db   -e POSTGRES_USER=postgres   -e POSTGRES_PASSWORD=postgres   postgres:16
+
+docker run --rm -p 6379:6379 redis:7
+```
+
+### 4. Миграции + запуск
+
+```bash
+bun run migrate
+bun run dev
+```
+
+Проверка:
+
+```bash
+curl http://localhost:3000/health
+```
+
+---
+
+## 🐳 Запуск через Docker
+
+### Сборка образа
+
+```bash
+docker build -t ghcr.io/rodionrostovchshikov/shipping-pricing-service:local .
+```
+
+### Запуск
+
+```bash
+docker run --rm -p 3000:3000 --env-file .env   ghcr.io/rodionrostovchshikov/shipping-pricing-service:local
+```
+
+---
+
+## 📦 API
+
+### Health-check
+
+```
+GET /health
+```
+
+### Расчёт стоимости доставки
+
+```
+POST /shipping/quotes
+Content-Type: application/json
+```
+
+---
+
+## 📘 Swagger
+
+```
+http://localhost:3000/swagger
+```
+
+---
+
+## 🧪 Тесты
+
+```bash
+bun test
+```
